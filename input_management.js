@@ -115,6 +115,10 @@
       getByData( dataProp, dataVal ) {
         if ( !dataVal ) return this.getData( dataProp );
         return this.getData( dataProp ).filter( ele => ele.data[ dataProp ] === dataVal );
+      },
+      getByClass(className) {
+          if(!className) throw Error("getByClass() => ClassName not provided.");
+          return this.fields.filter(field => field.class.split(/\s/gmi).includes(className));
       }
     };
   } );
@@ -122,6 +126,7 @@
     switch ( this.tagName ) {
       case "SELECT":
         return {
+        	class: this.className,
           data: this.dataset || null,
           value: this.value,
           name: this.name,
@@ -133,6 +138,7 @@
         break;
       case "TEXTAREA":
         return {
+        	class: this.className,
           data: this.dataset || null,
           value: this.value,
           name: this.name,
@@ -147,6 +153,7 @@
           case "color":
           case "text":
             return {
+            	class: this.className,
               data: this.dataset || null,
               value: this.value,
               name: this.name,
@@ -159,6 +166,7 @@
             break;
           case "checkbox":
             return {
+            	class: this.className,
               data: this.dataset || null,
               value: this.checked,
               checked: this.checked,
@@ -174,6 +182,7 @@
             let checked = container.querySelector( "input[name='" + this.name + "']:checked" );
             let amichecked = this.checked;
             return {
+            	class: this.className,
               data: this.dataset || null,
               isSelected: amichecked,
               getSelected() {
