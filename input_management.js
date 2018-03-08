@@ -1,136 +1,202 @@
 // input management
-( function InputManagement_() {
-  ( HTMLElement.prototype.renderUsingInput = function( input, options = {} ) {
-    if ( !input ) throw Error( "invalid input" );
+(function InputManagement_() {
+  (HTMLElement.prototype.renderUsingInput = function(input, options = {}) {
+    if (!input) throw Error("invalid input");
     try {
-      input = JSON.parse( input );
-    } catch ( e ) {
-      throw Error( "invalid input" );
+      input = JSON.parse(input);
+    } catch (e) {
+      throw Error("invalid input");
     }
     let selector = "";
     let previousNodes = [];
 
-    function alreadySelected( node ) {
+    function alreadySelected(node) {
       let flag = false;
-      if ( !node ) return true;
-      for ( let c_node of previousNodes ) {
-        if ( node )
-          if ( node.isSameNode( c_node ) ) flag = true;
+      if (!node) return true;
+      for (let c_node of previousNodes) {
+        if (node) if (node.isSameNode(c_node)) flag = true;
       }
       return flag;
     }
-    for ( let field of input ) {
-      if ( options.selector ) {
-        selector = options.selector( field );
-        if ( selector == "" || selector == undefined ) {
-          if ( options.selectorFallback ) selector = defaultSelector( selector );
+    for (let field of input) {
+      if (options.selector) {
+        selector = options.selector(field);
+        if (selector == "" || selector == undefined) {
+          if (options.selectorFallback) selector = defaultSelector(selector);
         }
       } else {
-        selector = defaultSelector( selector );
+        selector = defaultSelector(selector);
       }
 
-      function defaultSelector( selector ) {
-        ( selector = field.tag );
-        ( selector += field.data ? selectorData( field.data ) : "" );
-        ( selector += field.id ? "#" + field.id : "" );
-        ( selector += field.name ? "[name='" + field.name + "']" : "" );
-        ( selector += field.type ? "[type='" + field.type + "']" : "" );
+      function defaultSelector(selector) {
+        selector = field.tag;
+        selector += field.data ? selectorData(field.data) : "";
+        selector += field.id ? "#" + field.id : "";
+        selector += field.name ? "[name='" + field.name + "']" : "";
+        selector += field.type ? "[type='" + field.type + "']" : "";
         return selector;
       }
 
-      function selectorData( data, selector = "" ) {
-        Object.getOwnPropertyNames( data ).forEach( name => selector += `[data-${name}='${data[name]}']` );
+      function selectorData(data, selector = "") {
+        Object.getOwnPropertyNames(data).forEach(
+          name => (selector += `[data-${name}='${data[name]}']`)
+        );
         return selector;
       }
-      if ( !selector ) break;
-      let eles = document.querySelectorAll( selector ),
-        retrieved = eles[ 0 ];
-      if ( eles.length > 1 && field.type === "radio" ) {
+      if (!selector) break;
+      let eles = document.querySelectorAll(selector),
+        retrieved = eles[0];
+      if (eles.length > 1 && field.type === "radio") {
         selector += "[value='" + field.value + "']";
-        retrieved = document.querySelector( selector );
-        if ( alreadySelected( retrieved ) ) continue;
-        if ( field.isSelected ) retrieved.checked = true;
+        retrieved = document.querySelector(selector);
+        if (alreadySelected(retrieved)) continue;
+        if (field.isSelected) retrieved.checked = true;
         else retrieved.checked = false;
-        previousNodes.push( retrieved );
-      } else if ( field.type === "checkbox" ) {
-        if ( alreadySelected( retrieved ) ) continue;
+        previousNodes.push(retrieved);
+      } else if (field.type === "checkbox") {
+        if (alreadySelected(retrieved)) continue;
         retrieved.checked = field.value;
-        previousNodes.push( retrieved );
+        previousNodes.push(retrieved);
       } else {
-        if ( alreadySelected( retrieved ) ) continue;
+        if (alreadySelected(retrieved)) continue;
         retrieved.value = field.value;
-        previousNodes.push( retrieved );
+        previousNodes.push(retrieved);
       }
     }
-    this.querySelectorAll( "input, select, textarea" ).forEach( ele => {} );
-  } ), ( HTMLElement.prototype.getChildInputValues = function() {
-    let container = this;
-    let objectArray = [];
-    this.querySelectorAll( "input, select, textarea" ).forEach( ele => {
-      let props = ele.getProps( container );
-      if ( props ) objectArray.push( props );
-    } );
-    return {
-      fields: objectArray,
-      storable: JSON.stringify( objectArray ),
-      renderAll() {},
-      getBy( prop, value ) {
-        let result = objectArray.filter( ele => ele[ prop ] === value );
-        return ( result[ 0 ] || {
-          value: undefined
-        } );
-      },
-      getData( dataProp ) {
-        let result = objectArray.filter( ele => ele.data );
-        result = result.filter( ele => ele.data[ dataProp ] );
-        return ( result || {
-          value: undefined
-        } );
-      },
-      getGroup( groupName ) {
-        let result = objectArray.filter( ele => ele.name === groupName );
-        result = result.filter( ele => ele.isSelected );
-        return ( result[ 0 ] || {
-          value: undefined
-        } );
-      },
-      getByName( name ) {
-        return this.getBy( "name", name );
-      },
-      getByID( id ) {
-        return this.getBy( "id", id );
-      },
-      getByText( txt ) {
-        return this.getBy( "text", txt );
-      },
-      getByType( type ) {
-        return this.getBy( "type", type );
-      },
-      getByValue( value ) {
-        return this.getBy( "value", value );
-      },
-      getByGroup( groupName ) {
-        return this.getGroup( groupName );
-      },
-      getByData( dataProp, dataVal ) {
-        if ( !dataVal ) return this.getData( dataProp );
-        return this.getData( dataProp ).filter( ele => ele.data[ dataProp ] === dataVal );
-      },
-      getByClass(className) {
-          if(!className) throw Error("getByClass() => ClassName not provided.");
-          return this.fields.filter(field => field.class.split(/\s/gmi).includes(className));
-      }
-    };
-  } );
-  HTMLInputElement.prototype.getProps = HTMLSelectElement.prototype.getProps = HTMLTextAreaElement.prototype.getProps = function( container ) {
-    switch ( this.tagName ) {
+  }),
+    (HTMLElement.prototype.getChildInputValues = function() {
+      let container = this;
+      let objectArray = [];
+      this.querySelectorAll("input, select, textarea").forEach(ele => {
+        let props = ele.getProps(container);
+        if (props) objectArray.push(props);
+      });
+      return {
+        fields: objectArray,
+        storable: JSON.stringify(objectArray),
+        defaultSelector(field) {
+          let selector = "";
+          selector = field.tag;
+          selector += field.data ? this.selectorData(field.data) : "";
+          selector += field.id ? "#" + field.id : "";
+          selector += field.name ? "[name='" + field.name + "']" : "";
+          selector += field.type ? "[type='" + field.type + "']" : "";
+          return selector;
+        },
+        selectorData(data, selector = "") {
+          Object.getOwnPropertyNames(data).forEach(
+            name => (selector += `[data-${name}='${data[name]}']`)
+          );
+          return selector;
+        },
+        onInput(fn) {
+          let obj = this;
+          this.fields.forEach(function(field) {
+            field.ele.addEventListener("input", function(e) {
+              let ele = document.querySelector(obj.defaultSelector(field));
+              fn(e, ele);
+            });
+          });
+        },
+        save(type, prop) {
+          window[type + "Storage"].setItem(
+            prop,
+            container.getChildInputValues().storable
+          );
+        },
+        get(type, prop) {
+          return window[type + "Storage"].getItem(prop);
+        },
+        determineListenerType(element) {
+          let type = (element.type || element.tagName).toUpperCase();
+          switch (type) {
+            case "CHECKBOX":
+            case "RADIO":
+              return "change";
+              break;
+            case "TEXTAREA":
+            case "TEXT":
+            case "SELECT":
+              return "input";
+              break;
+            default:
+              throw Error(
+                "determineListenerType() => Invalid Tag or Type determination: " +
+                  (element.type || element.tagName).toUpperCase()
+              );
+              break;
+          }
+        },
+        getBy(prop, value) {
+          let result = objectArray.filter(ele => ele[prop] === value);
+          return (
+            result[0] || {
+              value: undefined
+            }
+          );
+        },
+        getData(dataProp) {
+          let result = objectArray.filter(ele => ele.data);
+          result = result.filter(ele => ele.data[dataProp]);
+          return (
+            result || {
+              value: undefined
+            }
+          );
+        },
+        getGroup(groupName) {
+          let result = objectArray.filter(ele => ele.name === groupName);
+          result = result.filter(ele => ele.isSelected);
+          return (
+            result[0] || {
+              value: undefined
+            }
+          );
+        },
+        getByName(name) {
+          return this.getBy("name", name);
+        },
+        getByID(id) {
+          return this.getBy("id", id);
+        },
+        getByText(txt) {
+          return this.getBy("text", txt);
+        },
+        getByType(type) {
+          return this.getBy("type", type);
+        },
+        getByValue(value) {
+          return this.getBy("value", value);
+        },
+        getByGroup(groupName) {
+          return this.getGroup(groupName);
+        },
+        getByData(dataProp, dataVal) {
+          if (!dataVal) return this.getData(dataProp);
+          return this.getData(dataProp).filter(
+            ele => ele.data[dataProp] === dataVal
+          );
+        },
+        getByClass(className) {
+          if (!className)
+            throw Error("getByClass() => ClassName not provided.");
+          return this.fields.filter(field =>
+            field.class.split(/\s/gim).includes(className)
+          );
+        }
+      };
+    });
+  HTMLInputElement.prototype.getProps = HTMLSelectElement.prototype.getProps = HTMLTextAreaElement.prototype.getProps = function(
+    container
+  ) {
+    switch (this.tagName) {
       case "SELECT":
         return {
-        	class: this.className,
+          class: this.className,
           data: this.dataset || null,
           value: this.value,
           name: this.name,
-          text: this.options[ this.selectedIndex ].textContent,
+          text: this.options[this.selectedIndex].textContent,
           tag: this.tagName,
           id: this.id || null,
           ele: this
@@ -138,7 +204,7 @@
         break;
       case "TEXTAREA":
         return {
-        	class: this.className,
+          class: this.className,
           data: this.dataset || null,
           value: this.value,
           name: this.name,
@@ -148,12 +214,12 @@
           ele: this
         };
       case "INPUT":
-        switch ( this.type ) {
+        switch (this.type) {
           case "date":
           case "color":
           case "text":
             return {
-            	class: this.className,
+              class: this.className,
               data: this.dataset || null,
               value: this.value,
               name: this.name,
@@ -166,7 +232,7 @@
             break;
           case "checkbox":
             return {
-            	class: this.className,
+              class: this.className,
               data: this.dataset || null,
               value: this.checked,
               checked: this.checked,
@@ -179,10 +245,12 @@
             };
             break;
           case "radio":
-            let checked = container.querySelector( "input[name='" + this.name + "']:checked" );
+            let checked = container.querySelector(
+              "input[name='" + this.name + "']:checked"
+            );
             let amichecked = this.checked;
             return {
-            	class: this.className,
+              class: this.className,
               data: this.dataset || null,
               isSelected: amichecked,
               getSelected() {
@@ -202,4 +270,4 @@
         }
     }
   };
-} )();
+})();
